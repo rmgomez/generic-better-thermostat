@@ -1,4 +1,11 @@
-import { LitElement, html, css } from "https://unpkg.com/lit-element@3.3.3/lit-element.js?module";
+const haPanel = customElements.get("ha-panel-lovelace");
+const LitElement = haPanel ? Object.getPrototypeOf(haPanel) : null;
+const html = LitElement?.prototype?.html;
+const css = LitElement?.prototype?.css;
+
+if (!LitElement || !html || !css) {
+  throw new Error("Lit not available in Home Assistant.");
+}
 
 class GenericBetterThermostatCard extends LitElement {
   static get properties() {
