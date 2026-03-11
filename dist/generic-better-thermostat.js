@@ -15,7 +15,15 @@ class GenericBetterThermostatCard extends LitElement {
       _entity: {},
       _humidity: {},
       _window: {},
+      _dragging: {},
     };
+  }
+
+  constructor() {
+    super();
+    this._dragging = false;
+    this._onPointerMoveBound = this._onPointerMove.bind(this);
+    this._onPointerUpBound = this._onPointerUp.bind(this);
   }
 
   setConfig(config) {
@@ -27,7 +35,7 @@ class GenericBetterThermostatCard extends LitElement {
       name: null,
       humidity_sensor: null,
       window_sensor: null,
-      step: 0.5,
+      step: 0.1,
       min: null,
       max: null,
       ...config,
@@ -60,7 +68,7 @@ class GenericBetterThermostatCard extends LitElement {
   _onChangeTemp(delta) {
     if (!this._entity || !this._entity.attributes) return;
     const attrs = this._entity.attributes;
-    const step = Number(this._config.step ?? 0.5);
+    const step = Number(this._config.step ?? attrs.target_temp_step ?? 0.1);
     const currentTarget = Number(attrs.temperature);
     if (Number.isNaN(currentTarget)) return;
 
@@ -88,14 +96,67 @@ class GenericBetterThermostatCard extends LitElement {
     });
   }
 
+  _setEcoMode() {
+    if (!this._entity || !this._entity.attributes) return;
+    const presets = this._entity.attributes.preset_modes || [];
+    if (presets.includes("eco")) {
+      this.hass.callService("climate", "set_preset_mode", {
+        entity_id: this._config.entity,
+        preset_mode: "eco",
+      });
+    }
+  }
+
   _handleDialClick(e) {
     if (!this._entity) return;
     const attrs = this._entity.attributes;
     const min = this._config.min ?? attrs.min_temp ?? 7;
     const max = this._config.max ?? attrs.max_temp ?? 35;
-    const step = Number(this._config.step ?? 0.5);
+    const step = Number(this._config.step ?? attrs.target_temp_step ?? 0.1);
 
     const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left - rect.width / 2;
+    const y = e.clientY - rect.top - rect.height / 2;
+    const angle = Math.atan2(y, x);
+    const normalized = (angle + Math.PI * 1.5) % (Math.PI * 2);
+    const ratio = normalized / (Math.PI * 2);
+
+    let next = min + ratio * (max - min);
+    next = Math.round(next / step) * step;
+    next = Math.max(min, Math.min(max, next));
+
+    this.hass.callService("climate", "set_temperature", {
+      entity_id: this._config.entity,
+      temperature: next,
+    });
+  }
+
+  _onPointerDown(e) {
+    e.preventDefault();
+    this._dragging = true;
+    this._updateFromPointer(e);
+    window.addEventListener("pointermove", this._onPointerMoveBound);
+    window.addEventListener("pointerup", this._onPointerUpBound, { once: true });
+  }
+
+  _onPointerMove(e) {
+    if (!this._dragging) return;
+    this._updateFromPointer(e);
+  }
+
+  _onPointerUp() {
+    this._dragging = false;
+    window.removeEventListener("pointermove", this._onPointerMoveBound);
+  }
+
+  _updateFromPointer(e) {
+    if (!this._entity) return;
+    const attrs = this._entity.attributes;
+    const min = this._config.min ?? attrs.min_temp ?? 7;
+    const max = this._config.max ?? attrs.max_temp ?? 35;
+    const step = Number(this._config.step ?? attrs.target_temp_step ?? 0.1);
+
+    const rect = this.shadowRoot.querySelector(".dial").getBoundingClientRect();
     const x = e.clientX - rect.left - rect.width / 2;
     const y = e.clientY - rect.top - rect.height / 2;
     const angle = Math.atan2(y, x);
@@ -150,9 +211,9 @@ class GenericBetterThermostatCard extends LitElement {
     const targetRatio = (Number(targetTemp) - min) / (max - min);
     const clampedRatio = Math.max(0, Math.min(1, Number.isFinite(targetRatio) ? targetRatio : 0));
 
-    const radius = 110;
+    const radius = 132;
     const circumference = 2 * Math.PI * radius;
-    const gap = circumference * 0.18;
+    const gap = circumference * 0.22;
     const arc = circumference - gap;
     const progress = arc * clampedRatio;
 
@@ -167,7 +228,7 @@ class GenericBetterThermostatCard extends LitElement {
           <ha-icon icon="mdi:dots-vertical" class="menu"></ha-icon>
         </div>
 
-        <div class="dial" @click=${this._handleDialClick}>
+        <div class="dial" @click=${this._handleDialClick} @pointerdown=${this._onPointerDown}>
           <svg class="dial-svg" viewBox="0 0 300 300">
             <circle
               class="dial-track"
@@ -188,6 +249,11 @@ class GenericBetterThermostatCard extends LitElement {
           </svg>
 
           <div class="dial-center">
+            <ha-icon
+              class="window-icon ${windowOpen ? "active" : ""}"
+              icon="mdi:window-open-variant"
+            ></ha-icon>
+
             <div class="status">${isHeating ? "Heating" : "Off"}</div>
 
             <div class="main-temp">
@@ -196,10 +262,6 @@ class GenericBetterThermostatCard extends LitElement {
             </div>
 
             <div class="sub-row">
-              <ha-icon
-                class="sub-icon ${windowOpen ? "active" : ""}"
-                icon="mdi:window-open-variant"
-              ></ha-icon>
               <span class="sub">${this._formatTemp(currentTemp)}°</span>
               <ha-icon class="sub-icon ${isHeating ? "active" : ""}" icon="mdi:fire"></ha-icon>
               <span class="sub">${this._formatHumidity()}</span>
@@ -220,7 +282,7 @@ class GenericBetterThermostatCard extends LitElement {
           <button class="mode-btn ${isHeating ? "active" : ""}" @click=${this._toggleHvacMode}>
             <ha-icon icon="mdi:fire"></ha-icon>
           </button>
-          <button class="mode-btn" disabled>
+          <button class="mode-btn" @click=${this._setEcoMode}>
             <ha-icon icon="mdi:leaf"></ha-icon>
           </button>
           <button class="mode-btn ${!isHeating ? "active" : ""}" @click=${this._toggleHvacMode}>
@@ -268,8 +330,8 @@ class GenericBetterThermostatCard extends LitElement {
       .dial {
         position: relative;
         width: 100%;
-        max-width: 260px;
-        margin: 4px auto 2px;
+        max-width: 300px;
+        margin: 4px auto 4px;
         aspect-ratio: 1 / 1;
         cursor: pointer;
       }
@@ -277,7 +339,7 @@ class GenericBetterThermostatCard extends LitElement {
       .dial-svg {
         width: 100%;
         height: 100%;
-        transform: rotate(-90deg);
+        transform: rotate(-120deg);
       }
 
       .dial-track {
@@ -317,6 +379,16 @@ class GenericBetterThermostatCard extends LitElement {
         font-size: 14px;
         color: var(--bt-mode-color);
         margin-bottom: 6px;
+      }
+
+      .window-icon {
+        color: var(--bt-muted);
+        --mdc-icon-size: 22px;
+        margin-bottom: 6px;
+      }
+
+      .window-icon.active {
+        color: var(--bt-mode-color);
       }
 
       .main-temp {
