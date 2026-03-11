@@ -1,10 +1,4 @@
-const LitElement = window.LitElement;
-const html = window.html;
-const css = window.css;
-
-if (!LitElement || !html || !css) {
-  throw new Error("Home Assistant frontend not loaded: missing Lit globals.");
-}
+import { LitElement, html, css } from "https://unpkg.com/lit-element@3.3.3/lit-element.js?module";
 
 class GenericBetterThermostatCard extends LitElement {
   static get properties() {
