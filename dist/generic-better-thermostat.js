@@ -160,8 +160,24 @@ class GenericBetterThermostatCard extends LitElement {
     const x = e.clientX - rect.left - rect.width / 2;
     const y = e.clientY - rect.top - rect.height / 2;
     const angle = Math.atan2(y, x);
-    const normalized = (angle + Math.PI * 1.5) % (Math.PI * 2);
-    const ratio = normalized / (Math.PI * 2);
+    const normalized = (angle + Math.PI * 2) % (Math.PI * 2);
+
+    const gapRatio = 0.22;
+    const gapAngle = Math.PI * 2 * gapRatio;
+    const arcAngle = Math.PI * 2 - gapAngle;
+    const gapCenter = Math.PI * 1.5; // 6 o'clock
+    const gapStart = (gapCenter - gapAngle / 2 + Math.PI * 2) % (Math.PI * 2);
+    const gapEnd = (gapCenter + gapAngle / 2) % (Math.PI * 2);
+
+    const inGap = gapStart < gapEnd
+      ? normalized >= gapStart && normalized <= gapEnd
+      : normalized >= gapStart || normalized <= gapEnd;
+    if (inGap) return;
+
+    const distanceFromGapEnd = normalized >= gapEnd
+      ? normalized - gapEnd
+      : normalized + Math.PI * 2 - gapEnd;
+    const ratio = distanceFromGapEnd / arcAngle;
 
     let next = min + ratio * (max - min);
     next = Math.round(next / step) * step;
@@ -213,13 +229,20 @@ class GenericBetterThermostatCard extends LitElement {
 
     const radius = 132;
     const circumference = 2 * Math.PI * radius;
-    const gap = circumference * 0.22;
+    const gapRatio = 0.22;
+    const gap = circumference * gapRatio;
     const arc = circumference - gap;
     const progress = arc * clampedRatio;
+    const gapAngle = Math.PI * 2 * gapRatio;
+    const arcAngle = Math.PI * 2 - gapAngle;
+    const gapCenter = Math.PI * 1.5; // 6 o'clock
+    const gapEnd = (gapCenter + gapAngle / 2) % (Math.PI * 2);
 
-    const angle = clampedRatio * 2 * Math.PI - Math.PI / 2;
+    const angle = gapEnd + clampedRatio * arcAngle;
     const knobX = 150 + radius * Math.cos(angle);
     const knobY = 150 + radius * Math.sin(angle);
+
+    const dashOffset = -(circumference * (gapEnd / (Math.PI * 2)));
 
     return html`
       <ha-card class="card ${isHeating ? "mode-heat" : "mode-off"}">
@@ -236,6 +259,7 @@ class GenericBetterThermostatCard extends LitElement {
               cy="150"
               r="${radius}"
               stroke-dasharray="${arc} ${gap}"
+              stroke-dashoffset="${dashOffset}"
             ></circle>
             <circle
               class="dial-progress"
@@ -243,6 +267,7 @@ class GenericBetterThermostatCard extends LitElement {
               cy="150"
               r="${radius}"
               stroke-dasharray="${progress} ${circumference - progress}"
+              stroke-dashoffset="${dashOffset}"
             ></circle>
             <circle class="dial-knob" cx="${knobX}" cy="${knobY}" r="9"></circle>
             <circle class="dial-knob-inner" cx="${knobX}" cy="${knobY}" r="4"></circle>
@@ -339,7 +364,7 @@ class GenericBetterThermostatCard extends LitElement {
       .dial-svg {
         width: 100%;
         height: 100%;
-        transform: rotate(-120deg);
+        transform: rotate(0deg);
       }
 
       .dial-track {
