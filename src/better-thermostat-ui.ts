@@ -672,13 +672,25 @@ export class BetterThermostatUi extends LitElement implements LovelaceCard {
       if (attributes.current_temperature) {
         this.current = attributes.current_temperature;
       }
-      const humidity = attributes.current_humidity ?? attributes?.humidity;
-      if (humidity !== undefined) {
-        this.current_humidity = parseFloat(humidity.toString());
+      this._hasWindow = false;
+      this.window = false;
+      this.current_humidity = 0;
+      if (this._config?.window_entity) {
+        const windowState = this.hass.states[this._config.window_entity];
+        if (windowState) {
+          this._hasWindow = true;
+          const rawWindow = windowState.state;
+          this.window = rawWindow === "on" || rawWindow === "open" || rawWindow === "true";
+        }
       }
-      if (attributes?.window_open !== undefined) {
-        this._hasWindow = true;
-        this.window = attributes.window_open;
+      if (this._config?.humidity_entity) {
+        const humidityState = this.hass.states[this._config.humidity_entity];
+        if (humidityState) {
+          const humidityValue = parseFloat(humidityState.state);
+          if (!isNaN(humidityValue)) {
+            this.current_humidity = humidityValue;
+          }
+        }
       }
       if (attributes?.call_for_heat !== undefined) {
         this._hasSummer = true;

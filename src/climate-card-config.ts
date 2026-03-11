@@ -29,6 +29,8 @@ export type ClimateCardConfig = LovelaceCardConfig &
     EntitySharedConfig &
     {
         disable_window?: boolean;
+        window_entity?: string;
+        humidity_entity?: string;
         disable_summer?: boolean;
         disable_eco?: boolean;
         disable_heat?: boolean;
@@ -45,6 +47,8 @@ export const climateCardConfigStruct = assign(
     entitySharedConfigStruct,
     object({
         disable_window: optional(boolean()),
+        window_entity: optional(string()),
+        humidity_entity: optional(string()),
         disable_summer: optional(boolean()),
         disable_eco: optional(boolean()),
         disable_heat: optional(boolean()),

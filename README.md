@@ -29,8 +29,10 @@ As for now the main improvement is the ability to see the extra status from bett
 | Name                 | Type    | Default      | Description                                                                                            |
 | -------------------- | ------- | ------------ | ------------------------------------------------------------------------------------------------------ |
 | type                 | string  | **Required** | `custom:better-thermostat-ui-card`                                                                     |
-| entity               | string  | **Required** | The entity id of climate entity (must be a better_thermostat entity). Example: `climate.hvac`          |
+| entity               | string  | **Required** | The entity id of climate entity. Example: `climate.hvac`                                               |
 | eco_temperature      | number  | **optional** | target temp for night/away/eco mode triggerd by ui button                                              |
+| window_entity       | string  | **optional** | entity id used for the window open indicator (manual configuration)                                    |
+| humidity_entity     | string  | **optional** | entity id used for room humidity (manual configuration)                                                |
 | disable_window      | boolean  | **optional** | turn off the window open indicator                                                                     |
 | disable_summer      | boolean  | **optional** | turn off the summer indicator                                                                          |
 | disable_heat        | boolean  | **optional** | turn off the on/heat button                                                                          |

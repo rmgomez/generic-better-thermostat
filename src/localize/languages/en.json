@@ -7,6 +7,8 @@
     "card": {
       "climate": {
         "disable_window": "Turn off the window open indicator",
+        "window_entity": "Entity used for the window open indicator",
+        "humidity_entity": "Entity used for room humidity",
         "disable_summer": "Turn off the summer indicator",
         "disable_eco": "Turn off the eco button",
         "disable_heat": "Turn off the on/heat button",
