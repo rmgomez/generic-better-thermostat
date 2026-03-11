@@ -1,0 +1,7 @@
+{
+  "name": "Generic Better Thermostat Card",
+  "type": "frontend",
+  "filename": "generic-better-thermostat-card.js",
+  "render_readme": true,
+  "content_in_root": false
+}
