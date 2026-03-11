@@ -17,14 +17,14 @@ A Home Assistant Lovelace custom card that mimics the visual layout of the Bette
 3. Ensure the resource is added:
    - HACS usually adds it automatically.
    - If you need to add it manually, use:
-     - URL: `/hacsfiles/generic-better-thermostat-card/generic-better-thermostat-card.js`
+     - URL: `/hacsfiles/generic-better-thermostat/generic-better-thermostat.js`
      - Type: `JavaScript Module`
 
 ## Manual Installation
 
-1. Copy `dist/generic-better-thermostat-card.js` to your Home Assistant `/config/www/` folder.
+1. Copy `dist/generic-better-thermostat.js` to your Home Assistant `/config/www/` folder.
 2. Add the resource in Home Assistant:
-   - URL: `/local/generic-better-thermostat-card.js`
+   - URL: `/local/generic-better-thermostat.js`
    - Type: `JavaScript Module`
 
 ## Usage
@@ -59,7 +59,7 @@ name: Living Room
 
 ## Development
 
-The source file is `dist/generic-better-thermostat-card.js`.
+The source file is `dist/generic-better-thermostat.js`.
 
 ## License
 
