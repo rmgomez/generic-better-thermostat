@@ -188,28 +188,30 @@ class GenericBetterThermostatCard extends LitElement {
           </svg>
 
           <div class="dial-center">
-            <div class="top-icons">
-              <ha-icon
-                class="top-icon ${windowOpen ? "active" : ""}"
-                icon="mdi:window-open-variant"
-              ></ha-icon>
-              <ha-icon
-                class="top-icon ${isHeating ? "active" : ""}"
-                icon="mdi:sun-thermometer"
-              ></ha-icon>
-            </div>
+            <div class="status">${isHeating ? "Heating" : "Off"}</div>
 
             <div class="main-temp">
               ${this._formatTemp(targetTemp)}
               <span class="unit">°</span>
             </div>
 
-            <div class="divider"></div>
-
             <div class="sub-row">
+              <ha-icon
+                class="sub-icon ${windowOpen ? "active" : ""}"
+                icon="mdi:window-open-variant"
+              ></ha-icon>
               <span class="sub">${this._formatTemp(currentTemp)}°</span>
               <ha-icon class="sub-icon ${isHeating ? "active" : ""}" icon="mdi:fire"></ha-icon>
               <span class="sub">${this._formatHumidity()}</span>
+            </div>
+
+            <div class="control-row">
+              <button class="control-btn" @click=${(e) => { e.stopPropagation(); this._onChangeTemp(-1); }}>
+                <ha-icon icon="mdi:minus"></ha-icon>
+              </button>
+              <button class="control-btn" @click=${(e) => { e.stopPropagation(); this._onChangeTemp(1); }}>
+                <ha-icon icon="mdi:plus"></ha-icon>
+              </button>
             </div>
           </div>
         </div>
@@ -223,15 +225,6 @@ class GenericBetterThermostatCard extends LitElement {
           </button>
           <button class="mode-btn ${!isHeating ? "active" : ""}" @click=${this._toggleHvacMode}>
             <ha-icon icon="mdi:power"></ha-icon>
-          </button>
-        </div>
-
-        <div class="controls">
-          <button class="control-btn" @click=${(e) => { e.stopPropagation(); this._onChangeTemp(-1); }}>
-            <ha-icon icon="mdi:minus"></ha-icon>
-          </button>
-          <button class="control-btn" @click=${(e) => { e.stopPropagation(); this._onChangeTemp(1); }}>
-            <ha-icon icon="mdi:plus"></ha-icon>
           </button>
         </div>
       </ha-card>
@@ -320,23 +313,14 @@ class GenericBetterThermostatCard extends LitElement {
         text-align: center;
       }
 
-      .top-icons {
-        display: flex;
-        gap: 20px;
+      .status {
+        font-size: 14px;
+        color: var(--bt-mode-color);
         margin-bottom: 6px;
       }
 
-      .top-icon {
-        color: var(--bt-muted);
-        --mdc-icon-size: 22px;
-      }
-
-      .top-icon.active {
-        color: var(--bt-mode-color);
-      }
-
       .main-temp {
-        font-size: 44px;
+        font-size: 46px;
         font-weight: 500;
         color: var(--bt-text);
         line-height: 1;
@@ -349,17 +333,11 @@ class GenericBetterThermostatCard extends LitElement {
         margin-left: 4px;
       }
 
-      .divider {
-        margin: 12px 0 8px;
-        width: 75%;
-        height: 1px;
-        background: var(--bt-track);
-      }
-
       .sub-row {
+        margin-top: 6px;
         display: flex;
         align-items: center;
-        gap: 14px;
+        gap: 10px;
         color: var(--bt-muted);
         font-size: 14px;
       }
@@ -373,11 +351,18 @@ class GenericBetterThermostatCard extends LitElement {
         color: var(--bt-mode-color);
       }
 
+      .control-row {
+        margin-top: 14px;
+        display: flex;
+        justify-content: center;
+        gap: 16px;
+      }
+
       .mode-row {
         display: flex;
         justify-content: center;
-        gap: 20px;
-        margin: 8px 0 2px;
+        gap: 22px;
+        margin: 6px 0 2px;
       }
 
       .mode-btn {
@@ -400,13 +385,6 @@ class GenericBetterThermostatCard extends LitElement {
       .mode-btn[disabled] {
         opacity: 0.5;
         cursor: default;
-      }
-
-      .controls {
-        display: flex;
-        justify-content: center;
-        gap: 24px;
-        margin-top: 10px;
       }
 
       .control-btn {
